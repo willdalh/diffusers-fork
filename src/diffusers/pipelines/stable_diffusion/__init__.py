@@ -45,7 +45,6 @@ if is_transformers_available() and is_torch_available():
     from .pipeline_stable_diffusion_inpaint_legacy import StableDiffusionInpaintPipelineLegacy
     from .pipeline_stable_diffusion_upscale import StableDiffusionUpscalePipeline
     from .safety_checker import StableDiffusionSafetyChecker
-    from .pipeline_stable_diffusion_interpolate_prompts import StableDiffusionInterpolatePromptsPipeline
 
 try:
     if not (is_transformers_available() and is_torch_available() and is_transformers_version(">=", "4.25.0")):
