@@ -46,7 +46,7 @@ EXAMPLE_DOC_STRING = """
 """
 
 
-class StableDiffusionPipelineInterpolatePrompts(DiffusionPipeline):
+class StableDiffusionInterpolatePromptsPipeline(DiffusionPipeline):
     r"""
     Pipeline for text-to-image generation using Stable Diffusion.
 
