@@ -46,7 +46,7 @@ EXAMPLE_DOC_STRING = """
 """
 
 
-class StableDiffusionInterpolatePromptsPipeline(DiffusionPipeline):
+class StableDiffusionEmbeddingInputPipeline(DiffusionPipeline):
     r"""
     Pipeline for text-to-image generation using Stable Diffusion.
 
@@ -393,14 +393,13 @@ class StableDiffusionInterpolatePromptsPipeline(DiffusionPipeline):
     @replace_example_docstring(EXAMPLE_DOC_STRING)
     def __call__(
         self,
-        prompt1: str,
-        prompt2: str,
+        text_embeddings: torch.FloatTensor,
         height: Optional[int] = None,
         width: Optional[int] = None,
         num_inference_steps: int = 50,
         guidance_scale: float = 7.5,
         negative_prompt: Optional[Union[str, List[str]]] = None,
-        num_images: Optional[int] = 2,
+        num_images_per_prompt: Optional[int] = 1,
         eta: float = 0.0,
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
         latents: Optional[torch.FloatTensor] = None,
@@ -470,11 +469,10 @@ class StableDiffusionInterpolatePromptsPipeline(DiffusionPipeline):
         width = width or self.unet.config.sample_size * self.vae_scale_factor
 
         # 1. Check inputs. Raise error if not correct
-        self.check_inputs(prompt1, height, width, callback_steps)
-        self.check_inputs(prompt2, height, width, callback_steps)
+        # self.check_inputs(prompt, height, width, callback_steps)
 
         # 2. Define call parameters
-        # batch_size2 = 1 if isinstance(prompt, str) else len(prompt)
+        # batch_size = 1 if isinstance(prompt, str) else len(prompt)
         device = self._execution_device
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
@@ -482,15 +480,10 @@ class StableDiffusionInterpolatePromptsPipeline(DiffusionPipeline):
         do_classifier_free_guidance = guidance_scale > 1.0
 
         # 3. Encode input prompt
-        text_embeddings_1 = self._encode_prompt(
-            prompt1, device, 1, do_classifier_free_guidance, negative_prompt
-        )
+        # text_embeddings = self._encode_prompt(
+        #     prompt, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt
+        # )
 
-        text_embeddings_2 = self._encode_prompt(
-            prompt1, device, 1, do_classifier_free_guidance, negative_prompt
-        )
-
-        text_embeddings = torch.cat([torch.lerp(text_embeddings_1, text_embeddings_2, i/(num_images - 1)) for i in range(num_images)], dim=0)
 
         # 4. Prepare timesteps
         self.scheduler.set_timesteps(num_inference_steps, device=device)
@@ -499,7 +492,7 @@ class StableDiffusionInterpolatePromptsPipeline(DiffusionPipeline):
         # 5. Prepare latent variables
         num_channels_latents = self.unet.in_channels
         latents = self.prepare_latents(
-            num_images,
+            1 * num_images_per_prompt,
             num_channels_latents,
             height,
             width,
